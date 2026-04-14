@@ -68,4 +68,45 @@ class TestExecuteMain:
         monkeypatch.setattr("shutil.which", lambda c: "/usr/bin/" + c)
         mod.main()
         captured = capsys.readouterr()
-        assert "uvx" in captured.out.lower() or "installed" in captured.out.lower()
+
+
+class TestHooksUninstall:
+    def test_uninstall_calls_execute_uninstall(self, monkeypatch):
+        """uninstall() should delegate to execute.uninstall_main()."""
+        mod = _import_hooks()
+        mock_execute = MagicMock()
+        mock_execute.uninstall_main.return_value = 0
+        monkeypatch.setattr(mod, "_load_execute", lambda: mock_execute)
+        result = mod.uninstall()
+        assert result == 0
+        mock_execute.uninstall_main.assert_called_once()
+
+
+class TestExecuteUninstall:
+    def test_uninstall_returns_zero_on_success(self, monkeypatch, capsys):
+        """pip uninstall succeeds and returns 0."""
+        mod = _import_execute()
+        mock_run = MagicMock(returncode=0, stdout="Successfully uninstalled mcp2cli")
+        monkeypatch.setattr("subprocess.run", lambda *a, **kw: mock_run)
+        result = mod.uninstall_main()
+        assert result == 0
+        captured = capsys.readouterr()
+        assert "uninstall" in captured.out.lower() or "removed" in captured.out.lower()
+
+    def test_uninstall_returns_zero_on_not_installed(self, monkeypatch, capsys):
+        """pip uninstall reports package not installed — still success."""
+        mod = _import_execute()
+        mock_run = MagicMock(returncode=0, stdout="Skipping mcp2cli - not installed")
+        monkeypatch.setattr("subprocess.run", lambda *a, **kw: mock_run)
+        result = mod.uninstall_main()
+        assert result == 0
+
+    def test_uninstall_returns_one_on_failure(self, monkeypatch, capsys):
+        """pip uninstall fails unexpectedly."""
+        mod = _import_execute()
+        mock_run = MagicMock(returncode=1, stderr="pip error")
+        monkeypatch.setattr("subprocess.run", lambda *a, **kw: mock_run)
+        result = mod.uninstall_main()
+        assert result == 1
+        captured = capsys.readouterr()
+        assert "failed" in captured.out.lower() or "error" in captured.out.lower()

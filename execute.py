@@ -33,5 +33,22 @@ def main():
     return 0
 
 
+def uninstall_main():
+    """Uninstall mcp2cli from the active Python environment."""
+    print("Uninstalling mcp2cli via pip...")
+    result = subprocess.run(
+        [sys.executable, "-m", "pip", "uninstall", "--quiet", "-y", "mcp2cli"],
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        print(f"pip uninstall failed:\n{result.stderr}")
+        return 1
+
+    print("mcp2cli uninstalled successfully.")
+    return 0
+
+
+
 if __name__ == "__main__":
     sys.exit(main())

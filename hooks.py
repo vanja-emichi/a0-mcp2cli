@@ -2,6 +2,7 @@
 
 The `install` hook is called by Agent Zero when the plugin is first enabled,
 automatically installing the mcp2cli CLI tool into the active environment.
+The `uninstall` hook is called when the plugin is disabled or removed.
 """
 import importlib.util
 from pathlib import Path
@@ -22,3 +23,9 @@ def install():
     """Install mcp2cli binary when the plugin is enabled."""
     execute = _load_execute()
     return execute.main()
+
+
+def uninstall():
+    """Uninstall mcp2cli binary when the plugin is disabled or removed."""
+    execute = _load_execute()
+    return execute.uninstall_main()
