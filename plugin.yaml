@@ -1,7 +1,7 @@
 name: mcp2cli
 title: MCP2CLI
 description: Token-efficient CLI bridge to any MCP server. Lets agents discover and call tools on any configured MCP server (stdio or HTTP) without loading all schemas into context. Saves 96-99% of tokens vs native MCP tool injection.
-version: 1.0.1
+version: 1.0.2
 per_project_config: false
 per_agent_config: false
 always_enabled: false

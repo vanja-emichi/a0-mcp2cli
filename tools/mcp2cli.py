@@ -6,6 +6,7 @@ tool schemas into LLM context. Saves 96-99% tokens vs native MCP injection.
 """
 import os
 import json
+import re
 import shlex
 import asyncio
 import shutil
@@ -16,15 +17,26 @@ _A0_ROOT = os.path.abspath(os.path.join(_PLUGIN_ROOT, "..", "..", ".."))
 from helpers.tool import Tool, Response
 
 
+_cached_bin: list | None = None
+
+
 def _get_mcp2cli_bin() -> list:
-    """Return argv prefix for mcp2cli, preferring installed binary over uvx."""
+    """Return argv prefix for mcp2cli, preferring installed binary over uvx.
+    
+    Result is cached after first call to avoid repeated shutil.which lookups.
+    """
+    global _cached_bin
+    if _cached_bin is not None:
+        return _cached_bin
     if shutil.which("mcp2cli"):
-        return ["mcp2cli"]
-    if shutil.which("uvx"):
-        return ["uvx", "mcp2cli"]
-    raise RuntimeError(
-        "mcp2cli not found. Run plugin Initialize or: pip install mcp2cli"
-    )
+        _cached_bin = ["mcp2cli"]
+    elif shutil.which("uvx"):
+        _cached_bin = ["uvx", "mcp2cli"]
+    else:
+        raise RuntimeError(
+            "mcp2cli not found. Run plugin Initialize or: pip install mcp2cli"
+        )
+    return _cached_bin
 
 
 def _load_mcp_servers() -> dict:
@@ -90,7 +102,7 @@ def _build_cmd(bin_argv: list, server_cfg: dict, action: str,
             try:
                 args_dict = json.loads(params)
                 for k, v in args_dict.items():
-                    flag = "--" + k.replace("_", "-")
+                    flag = "--" + re.sub(r'([a-z0-9])([A-Z])', r'\1-\2', k).replace("_", "-").lower()
                     cmd += [flag, str(v)]
             except (json.JSONDecodeError, AttributeError):
                 cmd += shlex.split(params)
@@ -191,10 +203,27 @@ class Mcp2cli(Tool):
                 search_query=search_query,
                 toon=use_toon,
             )
-        except (ValueError, Exception) as e:
+        except Exception as e:
             return Response(message=f"Command build error: {e}", break_loop=False)
 
-        display_cmd = " ".join(shlex.quote(c) for c in cmd)
+        # Redact secret values from --env flags in display output
+        display_parts = []
+        i = 0
+        while i < len(cmd):
+            if cmd[i] == "--env" and i + 1 < len(cmd):
+                display_parts.append(cmd[i])
+                # Redact the value portion: KEY=secret → KEY=***
+                env_val = cmd[i + 1]
+                if "=" in env_val:
+                    k, _ = env_val.split("=", 1)
+                    display_parts.append(f"{k}=***")
+                else:
+                    display_parts.append("***")
+                i += 2
+            else:
+                display_parts.append(cmd[i])
+                i += 1
+        display_cmd = " ".join(shlex.quote(c) for c in display_parts)
         self.log.update(heading=f"mcp2cli {action}" + (f": {tool_name}" if tool_name else ""))
         self.add_progress(f"$ {display_cmd}")
 
