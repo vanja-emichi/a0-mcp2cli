@@ -42,13 +42,13 @@ class TestManifestStructure:
         assert len(parts) == 2 or len(parts) == 3
         assert all(p.isdigit() for p in parts)
 
-    def test_per_project_config_is_false(self):
+    def test_per_project_config_is_true(self):
         data = _load_manifest()
-        assert data.get("per_project_config") is False
+        assert data.get("per_project_config") is True
 
-    def test_per_agent_config_is_false(self):
+    def test_per_agent_config_is_true(self):
         data = _load_manifest()
-        assert data.get("per_agent_config") is False
+        assert data.get("per_agent_config") is True
 
     def test_always_enabled_is_false(self):
         data = _load_manifest()

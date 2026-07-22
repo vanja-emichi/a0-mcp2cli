@@ -1,0 +1,37 @@
+<html>
+<head>
+    <title>MCP2CLI</title>
+</head>
+
+<body>
+    <div x-data>
+        <template x-if="config">
+            <div>
+                <div class="section-title">MCP2CLI</div>
+                <div class="section-description">
+                    Token-efficient bridge to MCP servers. In CLI mode, native MCP tool-schema
+                    injection is suppressed and agents discover and call tools on demand via
+                    <code>code_execution_tool</code> + the <code>mcp2cli</code> CLI,
+                    saving 96-99% of MCP prompt tokens.
+                </div>
+
+                <div class="field">
+                    <div class="field-label">
+                        <div class="field-title">MCP Mode</div>
+                        <div class="field-description">
+                            <strong>cli</strong> (default): native injection suppressed; agents use <code>code_execution_tool</code> + <code>uvx mcp2cli</code> on demand.<br>
+                            <strong>default</strong>: all MCP tool schemas injected into the system prompt every turn (native behavior).
+                        </div>
+                    </div>
+                    <div class="field-control">
+                        <select x-model="config.mcp_mode">
+                            <option value="cli">cli (on-demand — recommended)</option>
+                            <option value="default">default (native injection)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </template>
+    </div>
+</body>
+</html>

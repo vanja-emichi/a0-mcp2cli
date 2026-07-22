@@ -11,3 +11,4 @@ wheels/
 
 # A0 project internals
 .a0proj/
+config.json

@@ -1,52 +1,17 @@
 import json
-import os
 import sys
-import types
 from pathlib import Path
-from unittest.mock import MagicMock, AsyncMock, patch
+from types import SimpleNamespace
+from unittest.mock import MagicMock
 
 import pytest
 
-# ── Plugin root paths ──────────────────────────────────────────────
+# Plugin lives inside the agent-zero tree; use the real framework, not mocks.
 PLUGIN_ROOT = Path(__file__).resolve().parent.parent
+_PROJECT_ROOT = PLUGIN_ROOT.parents[2]  # .../loloi
+if str(_PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(_PROJECT_ROOT))
 
-
-# ── Mock Agent Zero framework modules before importing plugin code ──
-def _install_mock_helpers():
-    helpers = types.ModuleType("helpers")
-    helpers_tool = types.ModuleType("helpers.tool")
-
-    class MockResponse:
-        def __init__(self, message="", break_loop=False):
-            self.message = message
-            self.break_loop = break_loop
-
-    class MockTool:
-        def __init__(self):
-            self.log = MagicMock()
-            self.log.update = MagicMock()
-            self.add_progress = MagicMock()
-
-    helpers_tool.Response = MockResponse
-    helpers_tool.Tool = MockTool
-
-    helpers_extension = types.ModuleType("helpers.extension")
-
-    class MockExtension:
-        def __init__(self):
-            self.agent = None
-
-    helpers_extension.Extension = MockExtension
-
-    sys.modules["helpers"] = helpers
-    sys.modules["helpers.tool"] = helpers_tool
-    sys.modules["helpers.extension"] = helpers_extension
-
-
-_install_mock_helpers()
-
-
-# ── Fixtures ────────────────────────────────────────────────────────
 
 @pytest.fixture
 def plugin_root():
@@ -89,13 +54,6 @@ def prompt_path(plugin_root):
 
 
 @pytest.fixture
-def tmp_settings_dir(tmp_path):
-    usr_dir = tmp_path / "usr"
-    usr_dir.mkdir()
-    return usr_dir
-
-
-@pytest.fixture
 def sample_servers():
     return {
         "test-http": {
@@ -116,14 +74,6 @@ def sample_servers():
             "disabled": True,
         },
     }
-
-
-@pytest.fixture
-def write_settings(tmp_settings_dir, sample_servers):
-    settings_path = tmp_settings_dir / "settings.json"
-    settings = {"mcp_servers": {"mcpServers": sample_servers}}
-    settings_path.write_text(json.dumps(settings))
-    return settings_path
 
 
 @pytest.fixture

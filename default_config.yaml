@@ -1,0 +1,8 @@
+# MCP integration mode.
+#   cli:     (default) Native MCP schema injection is suppressed. Agents
+#            discover and call MCP tools on demand through code_execution_tool
+#            + the mcp2cli CLI, loading schemas only when needed.
+#            Saves 96-99% of MCP prompt tokens.
+#   default: Agent Zero injects all MCP tool schemas into the system prompt
+#            every turn (native behavior; highest token cost).
+mcp_mode: cli
