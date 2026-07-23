@@ -51,7 +51,7 @@ No dedicated Tool class. The agent uses the standard `code_execution_tool`
 
 ```bash
 # Plugin tests
-docker exec -w /a0/usr/plugins/_mcp2cli agent-zero-loloi /opt/venv-a0/bin/python -m pytest tests/ -v
+docker exec -w /a0/usr/plugins/mcp2cli agent-zero-loloi /opt/venv-a0/bin/python -m pytest tests/ -v
 
 # Prompt context-engineering tests
 docker exec -w /a0 -e PYTHONPATH=/a0 agent-zero-loloi /opt/venv-a0/bin/python -m pytest tests/test_prompt_context_engineering.py -v

@@ -13,9 +13,9 @@ def _cli_mode_active(agent) -> bool:
     try:
         from helpers import plugins
 
-        if "_mcp2cli" not in plugins.get_enabled_plugins(agent):
+        if "mcp2cli" not in plugins.get_enabled_plugins(agent):
             return False
-        cfg = plugins.get_plugin_config("_mcp2cli", agent=agent) or {}
+        cfg = plugins.get_plugin_config("mcp2cli", agent=agent) or {}
         return str(cfg.get("mcp_mode", "cli")).lower() == "cli"
     except Exception:
         return False

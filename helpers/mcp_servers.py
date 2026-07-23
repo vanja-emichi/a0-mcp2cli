@@ -4,8 +4,8 @@ Prints configured MCP server connection strings so the agent can build
 ``uvx mcp2cli`` commands via ``code_execution_tool`` without reading raw
 settings or credentials. Usage::
 
-    python /a0/usr/plugins/_mcp2cli/helpers/mcp_servers.py            # list all
-    python /a0/usr/plugins/_mcp2cli/helpers/mcp_servers.py gtm         # show one
+    python /a0/usr/plugins/mcp2cli/helpers/mcp_servers.py            # list all
+    python /a0/usr/plugins/mcp2cli/helpers/mcp_servers.py gtm         # show one
 """
 from __future__ import annotations
 
