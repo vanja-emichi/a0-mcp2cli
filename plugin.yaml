@@ -5,5 +5,6 @@ version: 1.1.0
 per_project_config: true
 per_agent_config: true
 always_enabled: false
+mcp_native_tools: suppress
 settings_sections:
   - agent
