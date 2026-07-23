@@ -14,10 +14,13 @@ injection (`mcp_mode: cli`) and lets agents discover/call MCP tools on demand vi
 - **Canonical plugin source:** `main` branch of `vanja-emichi/a0-mcp2cli`
 - **Live plugin path:** `/a0/usr/plugins/mcp2cli` (host: `/home/debian/agent-zero/loloi/usr/plugins/mcp2cli`) — an independent clone of `main`. Host and container share the filesystem; a commit + push to `main` is visible at the live path after `git pull` there.
 - **Upstream reference:** `knowsuchagency/mcp2cli` (PyPI) under `sources/github/` (read-only)
+- **Origin workspace:** pre-migration dev happened in backup `vanja-1` (`/home/debian/agent-zero/backup/vanja-1/usr/projects/mcp2cli/`, read-only archive). Full version/evolution record: `docs/research/backup-origin-and-v1.1.0-evolution-2026-07-23.md`.
 
 ## Scope
 
 - Plugin extensions, skill, helper (`helpers/mcp_servers.py`), webui config, lifecycle hooks
+- v1.0.x → v1.1.0 history: dedicated Tool class dropped for prompt-suppression +
+  `code_execution_tool` routing; dir renamed `_mcp2cli` → `mcp2cli` (index name)
 - Token-efficiency evidence: native-schema vs cli-mode prompt size and call success
 - Runtime integration: prompt suppression firing, per-project config, credential resolution
 - Promotion of validated changes from this workspace (`project` branch) to `main`
