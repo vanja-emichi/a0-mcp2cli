@@ -21,13 +21,13 @@ The `mcp2cli` CLI binary bridges to any MCP server. Instead of injecting all too
 Always start by listing configured servers to get the exact connection command with credentials already resolved:
 
 ```bash
-python /a0/usr/plugins/_mcp2cli/helpers/mcp_servers.py
+python /a0/usr/plugins/mcp2cli/helpers/mcp_servers.py
 ```
 
 For a single server's command:
 
 ```bash
-python /a0/usr/plugins/_mcp2cli/helpers/mcp_servers.py <server-name>
+python /a0/usr/plugins/mcp2cli/helpers/mcp_servers.py <server-name>
 ```
 
 This prints the full `uvx mcp2cli <connection-flags>` prefix — **copy it exactly**, credentials are embedded.
@@ -77,7 +77,7 @@ EOF
     "tool_name": "code_execution_tool",
     "tool_args": {
         "runtime": "terminal",
-        "code": "python /a0/usr/plugins/_mcp2cli/helpers/mcp_servers.py"
+        "code": "python /a0/usr/plugins/mcp2cli/helpers/mcp_servers.py"
     }
 }
 ~~~

@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Canonical workspace for developing, integrating, and validating the `_mcp2cli`
+Canonical workspace for developing, integrating, and validating the `mcp2cli`
 plugin in Agent Zero: a token-efficient bridge that suppresses native MCP schema
 injection (`mcp_mode: cli`) and lets agents discover/call MCP tools on demand via
 `code_execution_tool` + the upstream `mcp2cli` CLI (`knowsuchagency/mcp2cli`, run via `uvx`).
@@ -12,7 +12,7 @@ injection (`mcp_mode: cli`) and lets agents discover/call MCP tools on demand vi
 - **Project owner:** Vanja Emichi
 - **Repo:** [vanja-emichi/a0-mcp2cli](https://github.com/vanja-emichi/a0-mcp2cli) on the `project` branch
 - **Canonical plugin source:** `main` branch of `vanja-emichi/a0-mcp2cli`
-- **Live plugin path:** `/a0/usr/plugins/_mcp2cli` (host: `/home/debian/agent-zero/loloi/usr/plugins/_mcp2cli`) — an independent clone of `main`. Host and container share the filesystem; a commit + push to `main` is visible at the live path after `git pull` there.
+- **Live plugin path:** `/a0/usr/plugins/mcp2cli` (host: `/home/debian/agent-zero/loloi/usr/plugins/mcp2cli`) — an independent clone of `main`. Host and container share the filesystem; a commit + push to `main` is visible at the live path after `git pull` there.
 - **Upstream reference:** `knowsuchagency/mcp2cli` (PyPI) under `sources/github/` (read-only)
 
 ## Scope
@@ -66,7 +66,7 @@ verified with `/opt/venv/bin/python3` / `uvx`. The two are not interchangeable.
 ## Verification
 
 - DOX chain: every `AGENTS.md` Child DOX Index link resolves to an existing file.
-- Plugin tests: `/opt/venv-a0/bin/python3 -m pytest /a0/usr/plugins/_mcp2cli/tests/`.
+- Plugin tests: `/opt/venv-a0/bin/python3 -m pytest /a0/usr/plugins/mcp2cli/tests/`.
 - Live smoke: enable cli mode, confirm MCP schema absent from built prompt, then a
   real `uvx mcp2cli` discover/call against a configured server (e.g. `deep-wiki`).
 

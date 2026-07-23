@@ -1,7 +1,7 @@
 # docs/ DOX
 
 ## Purpose
-Project documentation for the `_mcp2cli` integration project.
+Project documentation for the `mcp2cli` integration project.
 
 ## Ownership
 - `plans/` — implementation plans.
