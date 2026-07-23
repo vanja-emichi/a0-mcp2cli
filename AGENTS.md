@@ -57,6 +57,16 @@ docker exec -w /a0/usr/plugins/mcp2cli agent-zero-loloi /opt/venv-a0/bin/python 
 docker exec -w /a0 -e PYTHONPATH=/a0 agent-zero-loloi /opt/venv-a0/bin/python -m pytest tests/test_prompt_context_engineering.py -v
 ```
 
+## Child DOX Index
+
+| Child | Scope |
+| --- | --- |
+| [extensions/AGENTS.md](extensions/AGENTS.md) | Prompt-build/system-prompt suppression hooks. |
+| [helpers/AGENTS.md](helpers/AGENTS.md) | `mcp_servers.py` config/credential resolver. |
+| [skills/AGENTS.md](skills/AGENTS.md) | Agent-facing CLI workflow skill. |
+| [tests/AGENTS.md](tests/AGENTS.md) | Plugin test contracts. |
+| [webui/AGENTS.md](webui/AGENTS.md) | Plugin config panel. |
+
 ## References
 
 | Fact | Canonical owner |
