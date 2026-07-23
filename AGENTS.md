@@ -22,9 +22,12 @@ injection (`mcp_mode: cli`) and lets agents discover/call MCP tools on demand vi
 - Runtime integration: prompt suppression firing, per-project config, credential resolution
 - Promotion of validated changes from this workspace (`project` branch) to `main`
 
-This workspace is a checkout of `vanja-emichi/a0-mcp2cli` on branch `project`.
-Plugin source changes are committed to `main`; this branch holds plans, research,
-evals, and implementation tracking. Agent Zero project metadata points to
+This workspace is a checkout of `vanja-emichi/a0-mcp2cli` on branch `project`,
+sharing the tree with the plugin source (same repo, both branches touch the same
+files). Plugin source changes are committed to `main`; the `project` branch holds
+plans, research, evals, and DOX — when editing, keep source files identical to
+`main` unless the change is being promoted, and rebase `project` on `main` after
+each promotion. Agent Zero project metadata points to
 `/a0/usr/projects/plugin_mcp2cli`, not the live plugin path.
 
 ## Local Contracts
