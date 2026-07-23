@@ -1,67 +1,76 @@
-# MCP2CLI Plugin DOX
+# MCP2CLI Plugin Integration Project
 
 ## Purpose
 
-Token-efficient bridge to any MCP server. Suppresses native MCP schema injection
-(`mcp_mode: cli`) and lets agents discover/call MCP tools on demand via
-`code_execution_tool` + the upstream `mcp2cli` CLI binary (`knowsuchagency/mcp2cli`,
-PyPI v3.3.1, run via `uvx`).
+Canonical workspace for developing, integrating, and validating the `_mcp2cli`
+plugin in Agent Zero: a token-efficient bridge that suppresses native MCP schema
+injection (`mcp_mode: cli`) and lets agents discover/call MCP tools on demand via
+`code_execution_tool` + the upstream `mcp2cli` CLI (`knowsuchagency/mcp2cli`, run via `uvx`).
 
 ## Ownership
 
-This is a community plugin in `usr/plugins/` (user-first discovery). No bundled
-sibling. Enabled on this instance (`.toggle-1`).
+- **Project owner:** Vanja Emichi
+- **Repo:** [vanja-emichi/a0-mcp2cli](https://github.com/vanja-emichi/a0-mcp2cli) on the `project` branch
+- **Canonical plugin source:** `main` branch of `vanja-emichi/a0-mcp2cli`
+- **Live plugin path:** `/a0/usr/plugins/_mcp2cli` (host: `/home/debian/agent-zero/loloi/usr/plugins/_mcp2cli`) — an independent clone of `main`. Host and container share the filesystem; a commit + push to `main` is visible at the live path after `git pull` there.
+- **Upstream reference:** `knowsuchagency/mcp2cli` (PyPI) under `sources/github/` (read-only)
 
-## Architecture
+## Scope
 
-No dedicated Tool class. The agent uses the standard `code_execution_tool`
-(runtime=terminal) for all MCP interactions. The plugin provides:
+- Plugin extensions, skill, helper (`helpers/mcp_servers.py`), webui config, lifecycle hooks
+- Token-efficiency evidence: native-schema vs cli-mode prompt size and call success
+- Runtime integration: prompt suppression firing, per-project config, credential resolution
+- Promotion of validated changes from this workspace (`project` branch) to `main`
 
-- **Extensions** — suppress MCP prompts and redirect the agent to the CLI workflow.
-- **A skill** — teaches the discover → inspect → call workflow.
-- **A helper script** — resolves server configs + credentials into ready-to-use commands.
-
-### Files
-
-| Path | Purpose |
-| --- | --- |
-| `default_config.yaml` | Default config: `mcp_mode: cli` |
-| `extensions/python/_functions/_12_mcp_prompt/build_prompt/end/_10_cli_mode.py` | Suppresses native MCP schema when `mcp_mode=cli` (sets `data["result"]=""`) |
-| `extensions/python/_functions/_11_tools_prompt/build_prompt/end/_10_strip_mcp_routing.py` | Strips dot-prefixed MCP routing line from tools prompt in cli mode |
-| `extensions/python/system_prompt/_30_mcp2cli_skill_hint.py` | Injects "load mcp2cli skill" hint |
-| `skills/mcp2cli/SKILL.md` | Teaches agent to use `code_execution_tool` + `uvx mcp2cli` |
-| `helpers/mcp_servers.py` | Resolves configured server connection strings with credentials |
-| `hooks.py` / `execute.py` | Plugin lifecycle (install/uninstall `mcp2cli` binary) |
-| `webui/config.html` | Mode dropdown (`mcp_mode: cli` / `default`) |
+This workspace is a checkout of `vanja-emichi/a0-mcp2cli` on branch `project`.
+Plugin source changes are committed to `main`; this branch holds plans, research,
+evals, and implementation tracking. Agent Zero project metadata points to
+`/a0/usr/projects/plugin_mcp2cli`, not the live plugin path.
 
 ## Local Contracts
 
-- `mcp_mode` config key (not `mode`): `cli` (default) or `default`.
-- Plugin enabled + `mcp_mode: cli` → MCP schemas suppressed, agent uses CLI.
-- Plugin enabled + `mcp_mode: default` → native injection (stock behavior).
-- Plugin disabled → extensions don't fire → native injection (stock behavior).
-- Extensions check `_cli_mode_active()` which requires plugin enabled AND `mcp_mode=cli`.
-- The `@extensible` hook path is computed from `func.__module__` (bare filename
-  via `import_module`), so hooks live at `_functions/<module_name>/<func>/end/`,
-  not nested under `extensions/python/system_prompt/`.
-- `helpers/mcp_servers.py` is location-independent (resolves `/a0` root
-  automatically); works from both `plugins/` and `usr/plugins/`.
+### Execution topology
+
+- **Codex:** control plane and primary development operator. Edits plans, source
+  records, eval definitions, and plugin changes; verifies against the live instance.
+- **Agent Zero loloi instance:** runtime target and evaluation environment at
+  `127.0.0.1:8082` / https://loloi.emichi.co (container `agent-zero-loloi`).
+
+### Two-runtime model
+
+- **`/opt/venv-a0`** (Python 3.12) — framework runtime. Plugin extensions and hooks
+  fire here; `helpers/mcp_servers.py` imports resolve here. All plugin tests and
+  prompt-resolution probes run under `/opt/venv-a0/bin/python3`.
+- **`/opt/venv`** (Python 3.13) — agent execution runtime. The `uvx mcp2cli` CLI
+  invocations the agent makes through `code_execution_tool` execute here.
+
+Verification rule: framework behavior (extension firing, prompt suppression,
+config resolution) is verified with `/opt/venv-a0/bin/python3`. CLI workflow is
+verified with `/opt/venv/bin/python3` / `uvx`. The two are not interchangeable.
+
+### Plugin contracts (from live plugin DOX)
+
+- Config key is `mcp_mode`: `cli` (default) or `default`. Per-project config overrides global.
+- Enabled + `mcp_mode: cli` → native MCP schemas suppressed; agent uses CLI discover → inspect → call.
+
+## Work Guidance
+
+1. **Understand:** document prompt-build hook points and upstream `mcp2cli` CLI surface.
+2. **Evaluate:** measure prompt-token delta (cli vs default mode) and call success.
+3. **Implement:** change plugin source; commit to `main`; `git pull` at live path.
+4. **Validate:** rerun plugin tests under `/opt/venv-a0` and a live headless smoke.
 
 ## Verification
 
-```bash
-# Plugin tests
-docker exec -w /a0/usr/plugins/_mcp2cli agent-zero-loloi /opt/venv-a0/bin/python -m pytest tests/ -v
+- DOX chain: every `AGENTS.md` Child DOX Index link resolves to an existing file.
+- Plugin tests: `/opt/venv-a0/bin/python3 -m pytest /a0/usr/plugins/_mcp2cli/tests/`.
+- Live smoke: enable cli mode, confirm MCP schema absent from built prompt, then a
+  real `uvx mcp2cli` discover/call against a configured server (e.g. `deep-wiki`).
 
-# Prompt context-engineering tests
-docker exec -w /a0 -e PYTHONPATH=/a0 agent-zero-loloi /opt/venv-a0/bin/python -m pytest tests/test_prompt_context_engineering.py -v
-```
+## Child DOX Index
 
-## References
-
-| Fact | Canonical owner |
-| --- | --- |
-| Plugin discovery, shadowing, manifest rules | root `plugins/AGENTS.md` |
-| MCP handler compact rendering | `helpers/mcp_handler.py.dox.md` |
-| Context-engineering audit findings | `CONTEXT_ENGINEERING_PROMPT_AUDIT.md` |
-| Upstream CLI | `knowsuchagency/mcp2cli` (PyPI v3.3.1) |
+- [docs/AGENTS.md](docs/AGENTS.md) — project documentation (plans, research, source records).
+- [sources/AGENTS.md](sources/AGENTS.md) — upstream reference source clones.
+- [tests/AGENTS.md](tests/AGENTS.md) — project-level test contracts.
+- [planning/AGENTS.md](planning/AGENTS.md) — loose planning notes.
+- [tasks/AGENTS.md](tasks/AGENTS.md) — A0 scheduler task scratch files.
