@@ -7,6 +7,12 @@ Token-efficient bridge to any MCP server. Suppresses native MCP schema injection
 `code_execution_tool` + the upstream `mcp2cli` CLI binary (`knowsuchagency/mcp2cli`,
 PyPI v3.3.1, run via `uvx`).
 
+## Knowledge
+
+- **Owning KB:** none dedicated — catalog entry in `~/knowledge/agent_zero_plugins` (② Tool). Promote to a dedicated KB if this plugin grows substantial durable knowledge (Hub placement rule #7).
+- **Access:** OpenKnowledge MCP only — `cwd: ~/knowledge/agent_zero_plugins`. Tools: `exec`, `search`, `write`, `edit`, `audit`, `lint`. Never `lsp` on KB markdown.
+- **Fleet index:** `vanja-emichi/vbunjevac` → `registry/repos.md`.
+
 ## Ownership
 
 This is a community plugin in `usr/plugins/` (user-first discovery). No bundled
