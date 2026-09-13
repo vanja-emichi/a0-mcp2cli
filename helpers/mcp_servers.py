@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -35,6 +36,18 @@ def _parse_mcp_servers(raw) -> dict:
     return data if isinstance(data, dict) else {}
 
 
+_SECRET_KEY_RE = re.compile(r"(token|secret|passw(?:or)?d|api[_-]?key|auth|credential|private[_-]?key)", re.IGNORECASE)
+
+
+def _redact_env_value(key: str, value: str) -> str:
+    """Redact values of secret-like env keys so credentials never reach stdout.
+
+    Non-secret environment variables (e.g. REGION, LOG_LEVEL) are left intact.
+    Ordinary plugin output must never echo secrets.
+    """
+    return "***" if _SECRET_KEY_RE.search(key) else value
+
+
 def load_servers() -> dict:
     root = _a0_root()
     servers: dict = {}
@@ -54,7 +67,7 @@ def _connection_line(name: str, cfg: dict) -> str:
         parts = [cfg["command"]] + cfg.get("args", [])
         stdio = " ".join(parts)
         env = cfg.get("env", {})
-        env_flags = " ".join(f'--env "{k}={v}"' for k, v in env.items()) if env else ""
+        env_flags = " ".join(f'--env "{k}={_redact_env_value(k, v)}"' for k, v in env.items()) if env else ""
         return f'--mcp-stdio "{stdio}"' + (f" {env_flags}" if env_flags else "")
     return "(unknown connection type)"
 
