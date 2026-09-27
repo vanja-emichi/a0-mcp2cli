@@ -6,6 +6,12 @@ settings or credentials. Usage::
 
     python /a0/usr/plugins/mcp2cli/helpers/mcp_servers.py            # list all
     python /a0/usr/plugins/mcp2cli/helpers/mcp_servers.py gtm         # show one
+
+LOCAL DIVERGENCE (upstream PR planned): this helper originally read only
+global ``usr/settings.json``. It now also merges the active project's
+``<project>/.a0proj/mcp_servers.json`` over global, matching the live MCP
+engine's merge order (project wins on name collision). A PR will be opened
+to propagate this fix upstream. See the plugin's local notes.
 """
 from __future__ import annotations
 
@@ -35,21 +41,73 @@ def _parse_mcp_servers(raw) -> dict:
     return data if isinstance(data, dict) else {}
 
 
-def load_servers() -> dict:
+def _project_servers_files(root: Path) -> list[Path]:
+    """All project-scoped MCP config files, newest last so the most recent
+    project wins on name collisions (mirrors the engine's merge order)."""
+    projects_dir = root / "usr" / "projects"
+    if not projects_dir.exists():
+        return []
+    files = []
+    for proj in sorted(projects_dir.iterdir()):
+        cfg = proj / ".a0proj" / "mcp_servers.json"
+        if cfg.exists():
+            files.append(cfg)
+    return files
+
+
+def load_servers(project_name: str | None = None) -> dict:
     root = _a0_root()
     servers: dict = {}
     settings_path = root / "usr" / "settings.json"
     if settings_path.exists():
         settings = json.loads(settings_path.read_text())
         servers.update(_parse_mcp_servers(settings.get("mcp_servers", {})))
+    # Project-scoped overrides (engine merge order: project wins).
+    proj_files = _project_servers_files(root)
+    if project_name:
+        named = root / "usr" / "projects" / project_name / ".a0proj" / "mcp_servers.json"
+        proj_files = [named] if named.exists() else []
+    for cfg in proj_files:
+        try:
+            servers.update(_parse_mcp_servers(json.loads(cfg.read_text())))
+        except Exception:
+            continue
     return servers
+
+
+def _resolve_secrets(text):
+    """Resolve secret-alias placeholders via the framework's secrets store.
+
+    Placeholder shape is the section mark + 'secret(' + KEY + ')'. Falls back to
+    the literal text if the secrets module is unavailable, so the helper still
+    runs standalone outside an Agent Zero checkout.
+    """
+    marker = "§§secret("  # alias prefix, built without the literal token
+    if marker not in text:
+        return text
+    try:
+        from helpers.secrets import get_default_secrets_manager
+        return get_default_secrets_manager().replace_placeholders(text)
+    except Exception:
+        return text
+
+
+def _auth_flags(cfg: dict) -> str:
+    """Emit --auth-header flags from a server's configured headers."""
+    headers = cfg.get("headers") or {}
+    if not isinstance(headers, dict):
+        return ""
+    flags = []
+    for key, value in headers.items():
+        flags.append(f'--auth-header "{key}: {_resolve_secrets(str(value))}"')
+    return (" " + " ".join(flags)) if flags else ""
 
 
 def _connection_line(name: str, cfg: dict) -> str:
     if "url" in cfg:
         transport = cfg.get("type", "sse")
         flag = "--transport streamable" if transport == "streamable-http" else "--transport sse"
-        return f'--mcp "{cfg["url"]}" {flag}'
+        return f'--mcp "{cfg["url"]}" {flag}{_auth_flags(cfg)}'
     elif "command" in cfg:
         parts = [cfg["command"]] + cfg.get("args", [])
         stdio = " ".join(parts)
